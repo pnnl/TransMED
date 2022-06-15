@@ -1,0 +1,38 @@
+__pycache__/
+
+
+# Ignore slurm logs
+*.out
+
+# Ignore data files
+*.pkl
+data/poincare
+data/covid
+data/feature_exposure
+data/feature_exposure.8001
+data/mimic
+
+# Ignore patient splits files - They contain patient data
+patient_splits/
+
+# Ignore TransMED default output directories
+pretrain/
+finetune/
+
+# Ignore benchmarks default output directories
+gru_results/
+mlp_results/
+rf_results/
+xgb_results/
+lr_results/
+benchmarks_results/
+
+# Ignore intermediary checkpoints r produced files
+*.ckpt
+*.pt
+
+# Mac specific items
+**/.DS_Store
+
+# VSCode specific items
+.vscode/settings.json
