@@ -4,13 +4,9 @@ __pycache__/
 # Ignore slurm logs
 *.out
 
-# Ignore data files
+# Ignore some data files
 *.pkl
-data/poincare
-data/covid
-data/feature_exposure
-data/feature_exposure.8001
-data/mimic
+
 
 # Ignore patient splits files - They contain patient data
 patient_splits/
