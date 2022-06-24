@@ -11,7 +11,7 @@
       3. PATIENTS.csv
       4. CPTEVENTS.csv
       5. DRGCODES.csv
-3. Generate pretraining data with [src/convert_mimic.py](src/convert_mimic.py). You can use the TransMED environment detailed above for both steps.
+3. Generate pretraining data with [src/convert_mimic.py](../../src/convert_mimic.py). You can use the TransMED environment detailed above for both steps.
 
     ```shell
     python src/convert_mimic.py \
@@ -21,7 +21,7 @@
         --output_base_path 'mimic'
     ```
 
-4. Generate finetuning data for readmission task with [src/create_mimic_ft_dataset.py](src/create_mimic_ft_dataset.py). You could edit this script for any outcome in MIMIC-III you want to target.
+4. Generate finetuning data for readmission task with [src/create_mimic_ft_dataset.py](../../src/create_mimic_ft_dataset.py). You could edit this script for any outcome in MIMIC-III you want to target.
 
     ```shell
     python src/create_mimic_ft_dataset.py \
