@@ -1,8 +1,10 @@
+"""
+Script to create finetuning dataframe and windows from mimic-III tables
+"""
 import argparse
-import pickle as pkl
-import sys
-
 import pandas as pd
+import sys
+import pickle
 
 
 def load_data(path):
@@ -20,6 +22,29 @@ def get_windows_mimic(row):
 
     windows.append(window)
     return windows
+
+
+# used for va cvd data
+def get_last_windows(ts, num_timesteps):
+    # Add one window that goes backwards from event num_timesteps
+    windows = []
+    max_ts = ts[-1]
+    start_ts = max_ts - (num_timesteps - 1)
+    window = list(range(start_ts, max_ts + 1))
+    windows.append(window)
+    return windows
+
+
+# def test_create_windows(data, num_timesteps, outcome_cols):
+#     global timesteps
+#     # Output a dataframe with one row per sample.
+#     # Columns: pid_vid, input_timesteps
+#     timesteps = data.groupby("pid_vid").agg({"timestep": list}).reset_index()
+#     timesteps["timestep"] = timesteps["timestep"].apply(lambda ts: sorted(ts))
+#     single_patient = timesteps.iloc[0]
+#     ts = single_patient.timestep
+#     sp_windows = get_windows(ts, num_timesteps)
+#     sp_last_k_windows = get_last_windows(ts, num_timesteps)
 
 
 def create_windows(data, outcome_cols, window_method):
@@ -60,14 +85,7 @@ def cast_codes_to_str(codes):
     return str_codes
 
 
-def main(args):
-    task = args.task
-    lookahead = args.lookahead
-    num_timesteps = args.num_timesteps
-    outcome_var = args.outcome_var
-    base_path = args.base_path
-    data_dir = args.data_dir
-    window_method = args.window_method
+def create_mimic_ft(data_dir, base_path, task, outcome_var, num_timesteps, lookahead, window_method):
 
     data_path = f"{data_dir}/{base_path}.pkl"
     print(f"Loading data from: {data_path}")
@@ -93,7 +111,6 @@ def main(args):
     print(f"task_data.pid_vid.nunique(): {task_data.pid_vid.nunique()}")
     print(f"Num cases: {task_data[task_data[outcome_var] == True].pid_vid.nunique()}")
     print(f"Num controls: {task_data[task_data[outcome_var] == False].pid_vid.nunique()}")
-
 
     # drop patients that only have 1 visit
     # patients with 2 visits are controls for no readmission
@@ -127,25 +144,29 @@ def main(args):
     output_path = f"{data_dir}/{task}_{base_path}_lookahead{lookahead}_numts{num_timesteps}.pkl"
     print(f"Dumping finetuning data to {output_path}")
     with open(output_path, 'wb') as f:
-        pkl.dump([task_data, task_windows], f)
-
+        pickle.dump([task_data, task_windows], f)
 
     # load pickle for testing the file was generated properly
     with open(output_path, 'rb') as f:
-        data, windows = pkl.load(f)
+        data, windows = pickle.load(f)
     print(f"data.shape: {data.shape}, windows.shape: {windows.shape}")
     print()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--data_dir", type=str)
+    parser.add_argument(
+        "--base_path",
+        type=str,
+        default="mimic",
+        help="Base path for naming output files",
+    )
     parser.add_argument("--task", default="readmission", type=str)
     parser.add_argument("--outcome_var", default="outcome_readmission")
     parser.add_argument("--num_timesteps", default=2, type=int, help='Fixed history length')
-    parser.add_argument("--data_dir", type=str)
-    parser.add_argument("--base_path", type=str)
-    parser.add_argument("--window_method", default="first", type=str, help='all | first | last')
     parser.add_argument("--lookahead", default=1, type=int)
+    parser.add_argument("--window_method", default="first", type=str, help='all | first | last')
     args = parser.parse_args()
     print(f"args: {args}")
-    main(args)
+    create_mimic_ft(args.data_dir, args.base_path, args.task, args.outcome_var, args.num_timesteps, args.lookahead, args.window_method)

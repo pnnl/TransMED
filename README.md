@@ -30,10 +30,16 @@ Pretraining data format
   - race: string, description of race
   - ethnicity: string, description of ethnicity
   - sex: string, description of sex
+  - insurance: string, description of insurance provider (not currently handled)
+  - language: string, description of language (not currently handled)
+  - religion: string, description of religion (not currently handled)
+  - expire_flag: int, EXPIRE_FLAG is a binary flag which indicates whether the patient died, i.e. whether DOD is null or not. These deaths include both deaths within the hospital (DOD_HOSP) and deaths identified by matching the patient to the social security master death index (DOD_SSN) (not currently handled)
   - age: float, years old
   - marital_status: string, description of marital status (not currently handled)
   - admission_type: string, type of admission (not currently handled)
   - initial_diagnosis: string, preliminary free text diagnosis for the patient on hospital admission (not currently handled)
+  - hospital_expire_flag: bool, This indicates whether the patient died within the given hospitalization. True indicates death in the hospital, and False indicates survival to hospital discharge (not currently handled)
+  - icustay_id: int, ICUSTAY_ID is unique to a patient ICU stay (not currently handled)
   - outcome_readmission: bool, True if the patient came back for another admission after this visit
   - conditions: List[obj], ICD diagnoses for patients, most notably ICD-9 diagnoses
   - procedures: List[obj], Procedure codes for patients

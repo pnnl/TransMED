@@ -1,37 +1,31 @@
-from datetime import datetime
-
-import numpy as np
 import pandas as pd
+from datetime import datetime
+import numpy as np
+import sys
+from mimic_mappings import get_mimic_mappings_external
 
 
-def load_mimic_tables(data_dir):
+def load_mimic_tables(data_dir, extension=".pkl", table_names=['ADMISSIONS', 'PATIENTS', 'CPTEVENTS', 'DIAGNOSES_ICD', 'PRESCRIPTIONS', 'PROCEDURES_ICD', 'ICUSTAYS']):
+    if extension == 'csv':
+        pd_read = pd.read_csv
+    elif extension == 'pkl':
+        pd_read = pd.read_pickle
+    else:
+        print(f"Unhandled extension: {extension}, exiting...")
+        sys.exit(1)
+
+    mimic_tables = dict()
+
+
     # Loading tables from mimic-III
     print("Loading tables from local file storage")
-    admissions_path = f"{data_dir}/ADMISSIONS.csv"
-    print(f"Loading admissions table from {admissions_path}")
-    admissions_df = pd.read_csv(admissions_path)
 
-    diagnoses_path = f"{data_dir}/DIAGNOSES_ICD.csv"
-    print(f"Loading diagnoses table from {diagnoses_path}")
-    diagnoses_df = pd.read_csv(diagnoses_path)
+    for table_name in table_names:
+        table_path = f"{data_dir}/{table_name}.{extension}"
+        table_df = pd_read(table_path)
+        mimic_tables[table_name] = table_df
 
-    patients_path = f"{data_dir}/PATIENTS.csv"
-    print(f"Loading patients table from {patients_path}")
-    patients_df = pd.read_csv(patients_path)
-
-    # datetimeevents_path = f"{args.data_dir}/DATETIMEEVENTS.csv"
-    # print(f"Loading datetimeevents table from {datetimeevents_path}")
-    # datetimeevents_df = pd.read_csv(datetimeevents_path)
-
-    cptevents_path = f"{data_dir}/CPTEVENTS.csv"
-    print(f"Loading cptevents table from {cptevents_path}")
-    cptevents_df = pd.read_csv(cptevents_path)
-
-    drgcodes_path = f"{data_dir}/DRGCODES.csv"
-    print(f"Loading drgcodes table from {drgcodes_path}")
-    drgcodes_df = pd.read_csv(drgcodes_path)
-
-    return admissions_df, diagnoses_df, patients_df, cptevents_df, drgcodes_df
+    return mimic_tables
 
 
 def transform_year(date):
@@ -60,7 +54,9 @@ def date_transform_df(df, date_fields, patient_offsets):
     # calculate date distance (delta days)
     patient_offsets[["FIRST_VISIT", "FIRST_VISIT_TRANSFORMED"]] = patient_offsets[
         ["FIRST_VISIT", "FIRST_VISIT_TRANSFORMED"]
-    ].apply(pd.to_datetime, format=date_format, errors='coerce')  # if conversion required; errors='coerce' handles invalid values
+    ].apply(
+        pd.to_datetime, format=date_format, errors="coerce"
+    )  # if conversion required; errors='coerce' handles invalid values
     patient_offsets["delta_days"] = (
         patient_offsets["FIRST_VISIT"] - patient_offsets["FIRST_VISIT_TRANSFORMED"]
     ).dt.days
@@ -84,7 +80,7 @@ def convert_date(original_date, delta_days):
         return None
     else:
         converted_date = pd.to_datetime(
-            original_date, format=date_format, errors='coerce'
+            original_date, format=date_format, errors="coerce"
         ) - pd.to_timedelta(delta_days, unit="d")
         return converted_date
 
@@ -95,7 +91,14 @@ def get_date_columns(mimic_key):
     if mimic_key == "ADMISSIONS":
         date_fields = ["ADMITTIME", "DISCHTIME", "DEATHTIME", "EDREGTIME", "EDOUTTIME"]
     elif mimic_key == "CALLOUT":
-        date_fields = ["CREATETIME", "UPDATETIME", "ACKNOWLEDGETIME", "OUTCOMETIME", "FIRSTRESERVATIONTIME", "CURRENTRESERVATIONTIME"]
+        date_fields = [
+            "CREATETIME",
+            "UPDATETIME",
+            "ACKNOWLEDGETIME",
+            "OUTCOMETIME",
+            "FIRSTRESERVATIONTIME",
+            "CURRENTRESERVATIONTIME",
+        ]
     elif mimic_key == "CHARTEVENTS":
         date_fields = ["CHARTTIME", "STORETIME"]
     elif mimic_key == "CPTEVENTS":
@@ -103,29 +106,64 @@ def get_date_columns(mimic_key):
     elif mimic_key == "DATETIMEEVENTS":
         date_fields = ["CHARTTIME", "STORETIME", "VALUE"]
     elif mimic_key == "ICUSTAYS":
-        date_fields = ['INTIME', 'OUTTIME']
+        date_fields = ["INTIME", "OUTTIME"]
     elif mimic_key == "INPUTEVENTS_CV":
-        date_fields = ['CHARTTIME','STORETIME']
+        date_fields = ["CHARTTIME", "STORETIME"]
     elif mimic_key == "INPUTEVENTS_MV":
-        date_fields = ['STARTTIME', 'ENDTIME', 'STORETIME', 'COMMENTS_DATE']
+        date_fields = ["STARTTIME", "ENDTIME", "STORETIME", "COMMENTS_DATE"]
     elif mimic_key == "LABEVENTS":
-        date_fields = ['CHARTTIME']
+        date_fields = ["CHARTTIME"]
     elif mimic_key == "MICROBIOLOGYEVENTS":
-        date_fields = ['CHARTDATE', 'CHARTTIME']
+        date_fields = ["CHARTDATE", "CHARTTIME"]
     elif mimic_key == "NOTEEVENTS":
-        date_fields = ['CHARTDATE', 'CHARTTIME', 'STORETIME']
+        date_fields = ["CHARTDATE", "CHARTTIME", "STORETIME"]
     elif mimic_key == "OUTPUTEVENTS":
-        date_fields = ['CHARTTIME','STORETIME']
+        date_fields = ["CHARTTIME", "STORETIME"]
     elif mimic_key == "PATIENTS":
-        date_fields = ['DOB','DOD', 'DOD_HOSP', 'DOD_SSN']
+        date_fields = ["DOB", "DOD", "DOD_HOSP", "DOD_SSN"]
     elif mimic_key == "PRESCRIPTIONS":
-        date_fields = ['STARTDATE','ENDDATE']
+        date_fields = ["STARTDATE", "ENDDATE"]
     elif mimic_key == "PROCEDUREEVENTS_MV":
-        date_fields = ['STARTTIME','ENDTIME', 'STORETIME', 'COMMENTS_DATE']
+        date_fields = ["STARTTIME", "ENDTIME", "STORETIME", "COMMENTS_DATE"]
     elif mimic_key == "SERVICES":
-        date_fields = ['TRANSFERTIME']
+        date_fields = ["TRANSFERTIME"]
     elif mimic_key == "TRANSFERS":
-        date_fields = ['INTIME', 'OUTTIME']
+        date_fields = ["INTIME", "OUTTIME"]
     else:
         print(f"Unhandled index name: {mimic_key}, no date_fields set")
     return date_fields
+
+
+def get_mimic_mappings(index_name, data):
+    index_body, actions = get_mimic_mappings_external(index_name, data)
+    return index_body, actions
+
+
+def generate_patient_offsets(admissions_df):
+    patient_offsets = []
+    date_format = "%Y-%m-%d %H:%M:%S"
+    # This is converting items to timestamps
+    admissions_df["visit_start"] = pd.to_datetime(
+        admissions_df["ADMITTIME"], format=date_format
+    )
+    admissions_df["visit_end"] = pd.to_datetime(
+        admissions_df["DISCHTIME"], format=date_format
+    )
+
+    patient_admission_groups = admissions_df.groupby("SUBJECT_ID")
+    for subject_id, group in patient_admission_groups:
+        patient_first_admittime = group.visit_start.min()
+        print()
+        patient_first_admittime_transformed = transform_year(patient_first_admittime)
+        patient_offset = (
+            subject_id,
+            patient_first_admittime,
+            patient_first_admittime_transformed,
+        )
+        patient_offsets.append(patient_offset)
+
+    patient_offsets_df = pd.DataFrame(
+        patient_offsets,
+        columns=["SUBJECT_ID", "FIRST_VISIT", "FIRST_VISIT_TRANSFORMED"],
+    )
+    return patient_offsets_df
