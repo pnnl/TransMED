@@ -110,7 +110,7 @@ torchvision==0.8.2+cu92
 tornado==6.1
 tqdm==4.61.0
 traitlets==5.0.5
-transformers==4.6.1
+transformers==5.10.1
 typing-extensions==3.10.0.0
 urllib3==1.26.5
 wcwidth==0.2.5
