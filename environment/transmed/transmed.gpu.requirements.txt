@@ -4,7 +4,7 @@ argon2-cffi==20.1.0
 async-generator==1.10
 backcall==0.2.0
 black==21.5b2
-certifi==2021.5.30
+certifi==2026.10.19
 chardet==4.0.0
 click==8.0.1
 cloudpickle==1.6.0
