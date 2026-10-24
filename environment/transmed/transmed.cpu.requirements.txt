@@ -5,7 +5,7 @@ argon2-cffi==20.1.0
 async-generator==1.10
 attrs==21.2.0
 backcall==0.2.0
-black==21.5b2
+black==26.10.1
 bleach==3.3.0
 certifi==2021.5.30
 cffi==1.14.5
