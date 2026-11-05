@@ -104,7 +104,7 @@ testpath==0.5.0
 threadpoolctl==2.1.0
 tokenizers==0.10.3
 toml==0.10.2
-torch==1.7.1+cu92
+torch==2.13.0
 torchaudio==0.7.2
 torchvision==0.8.2+cu92
 tornado==6.1
